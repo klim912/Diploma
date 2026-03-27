@@ -3,6 +3,7 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
+import jsdoc from 'eslint-plugin-jsdoc'
 
 export default tseslint.config(
   // ── Ignored paths ────────────────────────────────────────────
@@ -32,6 +33,7 @@ export default tseslint.config(
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
+      'jsdoc': jsdoc,
     },
     rules: {
       // ── React Hooks ──────────────────────────────────────────
@@ -48,6 +50,40 @@ export default tseslint.config(
       ],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
+
+      // ── JSDoc ────────────────────────────────────────────────
+      'jsdoc/require-jsdoc': [
+        'warn',
+        {
+          require: {
+            FunctionDeclaration: true,
+            MethodDefinition: true,
+            ClassDeclaration: true,
+            ArrowFunctionExpression: false,
+            FunctionExpression: false,
+          },
+          contexts: [
+            'FunctionDeclaration',
+            'MethodDefinition',
+            'ClassDeclaration',
+            'TSInterfaceDeclaration',
+            'TSTypeAliasDeclaration',
+          ],
+        },
+      ],
+      'jsdoc/require-description': 'warn',
+      'jsdoc/check-alignment': 'warn',
+      'jsdoc/check-param-names': 'warn',
+      'jsdoc/check-tag-names': 'warn',
+      'jsdoc/check-types': 'warn',
+      'jsdoc/no-undefined-types': 'warn',
+      'jsdoc/require-param': 'warn',
+      'jsdoc/require-param-description': 'warn',
+      'jsdoc/require-param-name': 'warn',
+      'jsdoc/require-param-type': 'warn',
+      'jsdoc/require-returns': 'warn',
+      'jsdoc/require-returns-description': 'warn',
+      'jsdoc/require-returns-type': 'warn',
       '@typescript-eslint/no-non-null-assertion': 'warn',
       '@typescript-eslint/no-empty-function': 'warn',
       '@typescript-eslint/consistent-type-imports': [

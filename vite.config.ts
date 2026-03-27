@@ -21,8 +21,8 @@ export default defineConfig({
   exclude: [
     '**/node_modules/**',
     '**/dist/**',
-    '**/*.spec.ts',        // ← додати це
-    '**/features/**',      // ← і це
+    '**/*.spec.ts',
+    '**/features/**',
   ]
-}
+  },
 })

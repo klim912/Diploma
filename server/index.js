@@ -7,16 +7,41 @@ const admin = require('firebase-admin');
 const QRCode = require('qrcode');
 const OTPAuth = require('otpauth');
 const rateLimit = require('express-rate-limit');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
     max: 100 
 });
 
-// Застосувати до всіх запитів
-app.use(limiter);
+// Swagger definition
+const swaggerDefinition = {
+  openapi: '3.0.0',
+  info: {
+    title: 'GameStoreApp API',
+    version: '1.0.0',
+    description: 'API for GameStoreApp with Steam authentication and 2FA',
+  },
+  servers: [
+    {
+      url: 'http://localhost:3000',
+      description: 'Development server',
+    },
+  ],
+};
+
+const options = {
+  swaggerDefinition,
+  apis: ['./index.js'], // Path to the API docs
+};
+
+const swaggerSpec = swaggerJsdoc(options);
 
 const app = express();
+
+// Apply rate limiting middleware to all requests
+app.use(limiter);
 
 const serviceAccount = require('./serviceAccountKey.json');
 admin.initializeApp({
@@ -35,6 +60,9 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 const STEAM_API_KEY = 'F0577A7618F5812DF4FF0E4C0A92C2AE';
 
@@ -85,8 +113,28 @@ passport.deserializeUser(async (steamId, done) => {
   }
 });
 
+/**
+ * @swagger
+ * /auth/steam:
+ *   get:
+ *     summary: Initiate Steam authentication
+ *     description: Redirects to Steam for authentication
+ *     responses:
+ *       302:
+ *         description: Redirect to Steam
+ */
 app.get('/auth/steam', passport.authenticate('steam', { session: true }));
 
+/**
+ * @swagger
+ * /auth/steam/return:
+ *   get:
+ *     summary: Steam authentication callback
+ *     description: Handles the callback from Steam after authentication
+ *     responses:
+ *       302:
+ *         description: Redirect to frontend with token or error
+ */
 app.get('/auth/steam/return', passport.authenticate('steam', { session: true }), async (req, res) => {
   try {
     if (!req.user) {
@@ -114,6 +162,33 @@ app.get('/auth/steam/return', passport.authenticate('steam', { session: true }),
   }
 });
 
+/**
+ * @swagger
+ * /logout:
+ *   post:
+ *     summary: Logout user
+ *     description: Logs out the user and destroys the session
+ *     responses:
+ *       200:
+ *         description: Successfully logged out
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Logged out
+ *       500:
+ *         description: Logout failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 app.post('/logout', (req, res) => {
   req.logout((err) => {
     if (err) {
@@ -128,6 +203,42 @@ app.post('/logout', (req, res) => {
   });
 });
 
+/**
+ * @swagger
+ * /generate-2fa:
+ *   post:
+ *     summary: Generate 2FA secret and QR code
+ *     description: Generates a TOTP secret and QR code for 2FA setup
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               uid:
+ *                 type: string
+ *                 description: User ID
+ *                 example: user123
+ *     responses:
+ *       200:
+ *         description: 2FA secret and QR code generated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 secret:
+ *                   type: string
+ *                   example: JBSWY3DPEHPK3PXP
+ *                 qrCodeUrl:
+ *                   type: string
+ *                   example: data:image/png;base64,...
+ *       400:
+ *         description: No UID provided
+ *       500:
+ *         description: Failed to generate 2FA
+ */
 app.post('/generate-2fa', async (req, res) => {
   try {
     const { uid } = req.body;
@@ -152,6 +263,43 @@ app.post('/generate-2fa', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /verify-2fa:
+ *   post:
+ *     summary: Verify 2FA token
+ *     description: Verifies the provided TOTP token for 2FA
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               uid:
+ *                 type: string
+ *                 description: User ID
+ *                 example: user123
+ *               token:
+ *                 type: string
+ *                 description: TOTP token
+ *                 example: 123456
+ *     responses:
+ *       200:
+ *         description: Token verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *       400:
+ *         description: Missing UID or token, or 2FA not enabled
+ *       500:
+ *         description: Failed to verify 2FA
+ */
 app.post('/verify-2fa', async (req, res) => {
   try {
     const { uid, token } = req.body;
