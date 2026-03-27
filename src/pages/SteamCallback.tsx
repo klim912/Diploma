@@ -44,7 +44,7 @@ const SteamCallback = () => {
           }, 5000);
         })
         .catch((err) => {
-          setError(t('error_steam_login') + ': ' + err.message);
+          setError(`${t('error_steam_login')  }: ${  err.message}`);
           setAuthLoading(false);
           navigate('/login');
         });

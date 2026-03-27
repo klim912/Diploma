@@ -136,3 +136,5 @@ $RECYCLE.BIN/
 .cache/
 .temp/
 .tmp/
+lint-before.txt
+lint-report.txt

@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await setDoc(settingsDoc, defaultSettings);
             setUserSettings(defaultSettings);
           }
-        } catch (err: any) {
+        } catch (_err: unknown) {
           setUserProfile({
             displayName: user.displayName || user.email || "Користувач",
             avatar: user.photoURL || "../src/assets/avatar.png",
@@ -156,7 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserProfile(null);
       setUserSettings(null);
       set2FAVerified(false);
-    } catch (err: any) {
+    } catch (_err: unknown) {
       throw new Error(t("error_logout"));
     }
   };
@@ -165,7 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-    } catch (err: any) {
+    } catch (_err: unknown) {
       throw new Error(t("error_google_login"));
     }
   };
@@ -174,7 +174,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const provider = new FacebookAuthProvider();
       await signInWithPopup(auth, provider);
-    } catch (err: any) {
+    } catch (_err: unknown) {
       throw new Error(t("error_facebook_login"));
     }
   };
@@ -182,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithSteam = async () => {
     try {
       window.location.href = 'http://localhost:3000/auth/steam';
-    } catch (err: any) {
+    } catch (_err: unknown) {
       throw new Error(t("error_steam_login"));
     }
   };
@@ -195,7 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(t("error_email_not_verified"));
       }
     } catch (err: any) {
-      throw new Error(t("error_email_login") + ": " + err.message);
+      throw new Error(`${t("error_email_login")  }: ${  err.message}`);
     }
   };
 
@@ -222,7 +222,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
       await setDoc(settingsDoc, defaultSettings);
     } catch (err: any) {
-      throw new Error(t("error_registration") + ": " + err.message);
+      throw new Error(`${t("error_registration")  }: ${  err.message}`);
     }
   };
 
@@ -230,7 +230,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await sendPasswordResetEmail(auth, email);
     } catch (err: any) {
-      throw new Error(t("error_password_reset") + ": " + err.message);
+      throw new Error(`${t("error_password_reset")  }: ${  err.message}`);
     }
   };
 
@@ -244,14 +244,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUserProfile((prev) => (prev ? { ...prev, displayName: name } : null));
     } catch (err: any) {
-      throw new Error(t("error_name_update") + ": " + err.message);
+      throw new Error(`${t("error_name_update")  }: ${  err.message}`);
     }
   };
 
   const updateUserEmail = async (email: string, password: string) => {
     if (!currentUser) throw new Error(t("error_no_user"));
+    
+    if (!currentUser.email) {
+      throw new Error(t("error_email_missing")); 
+    }
+
     try {
-      const credential = EmailAuthProvider.credential(currentUser.email!, password);
+      const credential = EmailAuthProvider.credential(currentUser.email, password);
       await reauthenticateWithCredential(currentUser, credential);
 
       await updateEmail(currentUser, email);
@@ -262,19 +267,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUserProfile((prev) => (prev ? { ...prev, email } : null));
     } catch (err: any) {
-      throw new Error(t("error_email_update") + ": " + err.message);
+      throw new Error(`${t("error_email_update")}: ${err.message}`);
     }
   };
 
   const updateUserPassword = async (newPassword: string, oldPassword: string) => {
     if (!currentUser) throw new Error(t("error_no_user"));
+
+    if (!currentUser.email) {
+      throw new Error(t("error_email_missing"));
+    }
+
     try {
-      const credential = EmailAuthProvider.credential(currentUser.email!, oldPassword);
+      const credential = EmailAuthProvider.credential(currentUser.email, oldPassword);
       await reauthenticateWithCredential(currentUser, credential);
 
       await updatePassword(currentUser, newPassword);
     } catch (err: any) {
-      throw new Error(t("error_password_update") + ": " + err.message);
+      throw new Error(`${t("error_password_update")}: ${err.message}`);
     }
   };
 
@@ -300,7 +310,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserSettings((prev) => (prev ? { ...prev, twoFactorEnabled: true, twoFactorSecret: secret } : null));
       return { secret, qrCodeUrl };
     } catch (err: any) {
-      throw new Error(t("error_tfa_failed") + ": " + err.message);
+      throw new Error(`${t("error_tfa_failed")  }: ${  err.message}`);
     }
   };
 
@@ -329,7 +339,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       set2FAVerified(true);
     } catch (err: any) {
-      throw new Error(t("error_tfa_verification") + ": " + err.message);
+      throw new Error(`${t("error_tfa_verification")  }: ${  err.message}`);
     }
   };
 
@@ -342,7 +352,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserSettings((prev) => (prev ? { ...prev, twoFactorEnabled: false, twoFactorSecret: undefined } : null));
       set2FAVerified(false);
     } catch (err: any) {
-      throw new Error(t("error_tfa_disable") + ": " + err.message);
+      throw new Error(`${t("error_tfa_disable")  }: ${  err.message}`);
     }
   };
 
@@ -354,14 +364,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUserSettings((prev) => (prev ? { ...prev, language } : null));
     } catch (err: any) {
-      throw new Error(t("error_language_update") + ": " + err.message);
+      throw new Error(`${t("error_language_update")  }: ${  err.message}`);
     }
   };
 
-  const deleteAccount = async (password: string) => {
+const deleteAccount = async (password: string) => {
     if (!currentUser) throw new Error(t("error_no_user"));
+
+    if (!currentUser.email) {
+      throw new Error(t("error_email_missing"));
+    }
+
     try {
-      const credential = EmailAuthProvider.credential(currentUser.email!, password);
+      const credential = EmailAuthProvider.credential(currentUser.email, password);
       await reauthenticateWithCredential(currentUser, credential);
 
       const userDoc = doc(db, "users", currentUser.uid);
@@ -376,7 +391,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserSettings(null);
       set2FAVerified(false);
     } catch (err: any) {
-      throw new Error(t("error_delete_account") + ": " + err.message);
+      throw new Error(`${t("error_delete_account")}: ${err.message}`);
     }
   };
 
@@ -411,6 +426,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext);
 }

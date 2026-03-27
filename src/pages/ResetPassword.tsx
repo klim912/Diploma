@@ -7,7 +7,7 @@ function ResetPassword() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const { resetPassword } = useAuth();
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
 
   const validateEmail = () => {
     if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {

@@ -9,6 +9,7 @@ function Profile() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  let provider;
 
   useEffect(() => {
     if (!loading && (!currentUser || !userProfile)) {
@@ -37,7 +38,7 @@ const handle2FASubmit = async (e: React.FormEvent) => {
       navigate("/login");
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : t("error_unknown");
-      setError(t("error_logout") + ": " + errorMessage);
+      setError(`${t("error_logout")  }: ${  errorMessage}`);
     }
   };
 
@@ -92,6 +93,16 @@ const handle2FASubmit = async (e: React.FormEvent) => {
     );
   }
 
+  if (userProfile.steamId) {
+    provider = "Steam";
+  } else if (currentUser?.providerData[0]?.providerId.includes("google")) {
+    provider = "Google";
+  } else if (currentUser?.providerData[0]?.providerId.includes("facebook")) {
+    provider = "Facebook";
+  } else {
+    provider = "Email";
+  }
+
   return (
     <div className="min-h-screen mt-[30px] bg-black font-mono text-white flex items-center justify-center py-12 px-4">
       <div className="max-w-md w-full bg-neutral-950/90 border border-lime-500/30 rounded-lg p-8 shadow-[0_0_15px_rgba(190,242,100,0.3)]">
@@ -144,14 +155,8 @@ const handle2FASubmit = async (e: React.FormEvent) => {
             <p className="text-lime-400 text-center">
               <span className="font-semibold">{t("auth_status")}:</span>{" "}
               <span className="text-lime-400">
-                {t("verified_via")}{" "}
-                {userProfile.steamId
-                  ? "Steam"
-                  : currentUser.providerData[0]?.providerId.includes("google")
-                  ? "Google"
-                  : currentUser.providerData[0]?.providerId.includes("facebook")
-                  ? "Facebook"
-                  : "Email"}
+                {t("verified_via")}{provider}
+               
               </span>
             </p>
           </div>

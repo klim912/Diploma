@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { SiFacebook, SiDiscord, SiX } from "@icons-pack/react-simple-icons";
-import { Formik, FormikHelpers, Form, Field, ErrorMessage } from "formik";
+import { FormikHelpers, Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
@@ -26,7 +26,7 @@ function Footer() {
     values: { name: string; message: string },
     helpers: FormikHelpers<{ name: string; message: string }>
   ) => {
-    console.log("Feedback submitted:", values);
+    console.warn("Feedback submitted:", values);
     alert(t("feedback_success"));
     helpers.resetForm();
   };

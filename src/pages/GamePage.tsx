@@ -54,8 +54,8 @@ function GamePage() {
         return res.json();
       })
       .then((data) => {
-        console.log("API Response:", data);
-        console.log("gameInfo:", data.gameInfo);
+        console.warn("API Response:", data);
+        console.warn("gameInfo:", data.gameInfo);
         setGame(data);
         setError(null);
       })
@@ -91,11 +91,11 @@ function GamePage() {
     if (isWishlisted) {
       removeFromWishlist(game.gameInfo.name);
       setIsWishlisted(false);
-      console.log("Removed from Wishlist", game.gameInfo.name);
+      console.warn("Removed from Wishlist", game.gameInfo.name);
     } else {
       addToWishlist(gameData);
       setIsWishlisted(true);
-      console.log("Added to Wishlist", game.gameInfo.name);
+      console.warn("Added to Wishlist", game.gameInfo.name);
     }
   };
 
@@ -112,11 +112,11 @@ function GamePage() {
     if (isInCart) {
       removeFromCart(game.gameInfo.name);
       setIsInCart(false);
-      console.log("Removed from Cart", game.gameInfo.name);
+      console.warn("Removed from Cart", game.gameInfo.name);
     } else {
       addToCart(gameData);
       setIsInCart(true);
-      console.log("Added to Cart", game.gameInfo.name);
+      console.warn("Added to Cart", game.gameInfo.name);
     }
   };
 

@@ -1,7 +1,7 @@
 function Sales() {
     return(
         <div>
-            
+
         </div>
     )
 }

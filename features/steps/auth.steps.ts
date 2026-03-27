@@ -1,5 +1,5 @@
 import { Given, When, Then, Before, After, setDefaultTimeout } from '@cucumber/cucumber';
-import { chromium, Browser, Page, expect } from '@playwright/test';
+import { Browser, Page, chromium, expect } from '@playwright/test';
 
 // Збільшуємо тайм-аут до 60 секунд (на всяк випадок)
 setDefaultTimeout(60 * 1000);
@@ -9,7 +9,7 @@ let page: Page;
 
 Before(async () => {
   // headless: false дозволить вам побачити браузер і зрозуміти, що відбувається
-  browser = await chromium.launch({ headless: false }); 
+  browser = await chromium.launch({ headless: false });
   page = await browser.newPage();
 });
 

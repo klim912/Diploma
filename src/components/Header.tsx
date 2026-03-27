@@ -50,12 +50,12 @@ function Header() {
   };
 
   const handleLogout = async () => {
-    console.log("Stage 33: Header logout initiated");
+    console.warn("Stage 33: Header logout initiated");
     try {
       await logout();
       toggleMenu();
       navigate("/");
-      console.log("Stage 34: Header logout successful");
+      console.warn("Stage 34: Header logout successful");
     } catch (err: any) {
       console.error("Stage 35: Header logout error:", err.message);
     }

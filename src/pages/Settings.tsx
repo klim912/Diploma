@@ -78,7 +78,7 @@ function Settings() {
       setQrCodeUrl(qrCodeUrl);
       setShowQRModal(true);
       setSuccess(t("success_tfa_enabled"));
-    } catch (err: any) {
+    } catch (_err: unknown) {
       setError(t("error_tfa_failed"));
     }
   };

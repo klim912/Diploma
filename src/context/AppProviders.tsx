@@ -3,7 +3,7 @@ import { CartProvider } from "../components/CartContext";
 import { WishlistProvider } from "../components/WishlistContext";
 import { LibraryProvider } from "../components/LibraryContext";
 import { AuthProvider } from "./AuthContext";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 const queryClient = new QueryClient();
 

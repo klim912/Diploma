@@ -17,4 +17,12 @@ export default defineConfig({
       allowedHeaders: ["Content-Type"],
     },
   },
+  test: {
+  exclude: [
+    '**/node_modules/**',
+    '**/dist/**',
+    '**/*.spec.ts',        // ← додати це
+    '**/features/**',      // ← і це
+  ]
+}
 })
