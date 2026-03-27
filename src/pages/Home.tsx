@@ -475,37 +475,7 @@ function Home() {
         </AnimatedSection>
       </div>
 
-      <style jsx>{`
-        .swiper-button-prev,
-        .swiper-button-next {
-          color: #bef264; /* lime-400 */
-          background: rgba(17, 24, 39, 0.8); /* neutral-950 */
-          border: 1px solid rgba(190, 242, 100, 0.3);
-          border-radius: 0.25rem;
-          padding: 0.5rem;
-          width: 2.5rem;
-          height: 2.5rem;
-          transition: all 0.3s ease;
-        }
-        .swiper-button-prev:hover,
-        .swiper-button-next:hover {
-          background: #bef264; /* lime-400 */
-          color: #000;
-          border-color: #bef264;
-        }
-        .swiper-button-prev::after,
-        .swiper-button-next::after {
-          font-size: 1.25rem;
-        }
-        .swiper-pagination-bullet {
-          background-color: #84cc16; /* Lime-400 */
-          opacity: 0.6;
-        }
-        .swiper-pagination-bullet-active {
-          background-color: #a3e635; /* Lime-300 */
-          opacity: 1;
-        }
-      `}</style>
+
     </div>
   );
 }
