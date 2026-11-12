@@ -25,6 +25,8 @@ import { fromFirebaseAuthError, AppError, ERROR_CODES, PaymentError, DataError }
 // Логер для цього модуля
 const log = createLogger("AuthContext");
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 interface UserProfile {
   displayName: string;
   avatar: string;
@@ -190,7 +192,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     log.info("Logout initiated", { uid: currentUser?.uid });
     try {
-      await fetch("http://localhost:3000/logout", {
+      await fetch(`${API_URL}/logout`, {
         method: "POST",
         credentials: "include",
       });
@@ -241,7 +243,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithSteam = async () => {
     log.info("Steam sign-in redirect initiated");
     try {
-      window.location.href = "http://localhost:3000/auth/steam";
+      window.location.href = `${API_URL}/auth/steam`;
     } catch (_err: unknown) {
       const appErr = new AppError(
         "Steam redirect failed",
@@ -400,7 +402,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser) throw new Error(t("error_no_user"));
     log.info("2FA enable initiated", { uid: currentUser.uid });
     try {
-      const response = await fetch("http://localhost:3000/generate-2fa", {
+      const response = await fetch(`${API_URL}/generate-2fa`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -438,7 +440,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const normalizedCode = code.replace(/\s/g, "");
 
-      const response = await fetch("http://localhost:3000/verify-2fa", {
+      const response = await fetch(`${API_URL}/verify-2fa`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
