@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
@@ -10,9 +11,19 @@ const rateLimit = require('express-rate-limit');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+const BACKEND_URL = (process.env.BACKEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+const STEAM_API_KEY = process.env.STEAM_API_KEY || 'F0577A7618F5812DF4FF0E4C0A92C2AE';
+const isHttps = BACKEND_URL.startsWith('https');
+
+const app = express();
+
+// Потрібно для коректної роботи express-rate-limit та cookie за проксі Render
+app.set('trust proxy', 1);
+
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, 
-    max: 100 
+  windowMs: 15 * 60 * 1000,
+  max: 100,
 });
 
 // Swagger definition
@@ -25,8 +36,8 @@ const swaggerDefinition = {
   },
   servers: [
     {
-      url: 'http://localhost:3000',
-      description: 'Development server',
+      url: BACKEND_URL,
+      description: 'API server',
     },
   ],
 };
@@ -38,25 +49,31 @@ const options = {
 
 const swaggerSpec = swaggerJsdoc(options);
 
-const app = express();
-
 // Apply rate limiting middleware to all requests
 app.use(limiter);
 
-const serviceAccount = require('./serviceAccountKey.json');
+// Завантаження ключів Firebase зі змінної оточення на Render або з локального файлу
+const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+  : require('./serviceAccountKey.json');
+
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: FRONTEND_URL,
   credentials: true,
 }));
 app.use(express.json());
 app.use(session({
-  secret: 'your_session_secret',
+  secret: process.env.SESSION_SECRET || 'your_session_secret',
   resave: false,
   saveUninitialized: false,
+  cookie: {
+    secure: isHttps,
+    sameSite: 'lax',
+  },
 }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -64,11 +81,9 @@ app.use(passport.session());
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-const STEAM_API_KEY = 'F0577A7618F5812DF4FF0E4C0A92C2AE';
-
 passport.use(new SteamStrategy({
-  returnURL: 'http://localhost:3000/auth/steam/return',
-  realm: 'http://localhost:3000/',
+  returnURL: `${BACKEND_URL}/auth/steam/return`,
+  realm: `${BACKEND_URL}/`,
   apiKey: STEAM_API_KEY,
 }, async (identifier, profile, done) => {
   try {
@@ -138,7 +153,7 @@ app.get('/auth/steam', passport.authenticate('steam', { session: true }));
 app.get('/auth/steam/return', passport.authenticate('steam', { session: true }), async (req, res) => {
   try {
     if (!req.user) {
-      return res.redirect('http://localhost:5173/auth/steam/callback?error=steam_auth_failed');
+      return res.redirect(`${FRONTEND_URL}/auth/steam/callback?error=steam_auth_failed`);
     }
 
     const steamId = req.user.steamId;
@@ -146,19 +161,19 @@ app.get('/auth/steam/return', passport.authenticate('steam', { session: true }),
 
     req.logout((err) => {
       if (err) {
-        res.redirect('http://localhost:5173/auth/steam/callback?error=logout_failed');
+        res.redirect(`${FRONTEND_URL}/auth/steam/callback?error=logout_failed`);
         return;
       }
       req.session.destroy((err) => {
         if (err) {
-          res.redirect('http://localhost:5173/auth/steam/callback?error=session_destroy_failed');
+          res.redirect(`${FRONTEND_URL}/auth/steam/callback?error=session_destroy_failed`);
           return;
         }
-        res.redirect(`http://localhost:5173/auth/steam/callback?token=${customToken}`);
+        res.redirect(`${FRONTEND_URL}/auth/steam/callback?token=${customToken}`);
       });
     });
   } catch (err) {
-    res.redirect('http://localhost:5173/auth/steam/callback?error=token_generation_failed');
+    res.redirect(`${FRONTEND_URL}/auth/steam/callback?error=token_generation_failed`);
   }
 });
 
@@ -336,5 +351,7 @@ app.post('/verify-2fa', async (req, res) => {
   }
 });
 
-const PORT = 3000;
-app.listen(PORT, () => {});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
