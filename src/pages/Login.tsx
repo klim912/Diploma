@@ -4,6 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { auth } from "../init/firebase";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 function Login() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -27,7 +29,7 @@ function Login() {
   }, [isLoggedIn, userSettings, navigate]);
 
   const handleSteamLogin = () => {
-    window.location.href = "http://localhost:3000/auth/steam";
+    window.location.href = `${API_URL}/auth/steam`;
   };
 
   const handleGoogleLogin = async () => {
@@ -64,7 +66,7 @@ function Login() {
       if (!auth.currentUser) {
         throw new Error(t("error_no_user"));
       }
-      const response = await fetch("http://localhost:3000/verify-2fa", {
+      const response = await fetch(`${API_URL}/verify-2fa`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
